@@ -10,11 +10,11 @@ defmodule Instrumental.Connection do
   @ok "ok\n"
 
   def start_link do
-    GenServer.start_link(__MODULE__, [])
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def send_cmd(cmd, conn) when is_binary(cmd) and is_pid(conn) do
-    GenServer.cast(conn, {:send, cmd})
+  def send_cmd(cmd) when is_binary(cmd) do
+    GenServer.cast(__MODULE__, {:send, cmd})
   end
 
   #
@@ -29,7 +29,7 @@ defmodule Instrumental.Connection do
     :gen_tcp.send(sock, cmd)
     {:noreply, state}
   end
-  def handle_cast(_, state), do: {:ok, state}
+  def handle_cast(_, state), do: {:noreply, state}
 
   def handle_info({:tcp, sock, @ok}, %{sock: sock, state: :hello} = state) do
     case :gen_tcp.send(sock, Protocol.authenticate) do
@@ -41,18 +41,17 @@ defmodule Instrumental.Connection do
     end
   end
   def handle_info({:tcp, sock, @ok}, %{sock: sock, state: :auth} = state) do
-    Logger.info "Instrumental connected"
+    Logger.debug "Instrumental connected"
     :inet.setopts(sock, [active: :once])
     {:noreply, %{state | state: :connected}}
   end
   def handle_info({:tcp, sock, data}, %{sock: sock} = state) do
-    Logger.info "Got data #{inspect data}"
     :inet.setopts(sock, [active: :once])
     {:noreply, state}
   end
 
   def handle_info({:tcp_closed, sock}, %{sock: sock} = state) do
-    Logger.info "Disconnected"
+    Logger.debug "Instrumental disconnected"
     {:noreply, %{state | sock: nil, state: nil}, @connect_retry}
   end
 
@@ -67,7 +66,7 @@ defmodule Instrumental.Connection do
     end
   end
   def handle_info(:timeout, %{sock: sock, state: :auth} = state) do
-    Logger.info "Retrying authentication"
+    Logger.debug "Instrumental retrying authentication"
     case :gen_tcp.send(sock, Protocol.authenticate) do
       :ok ->
         :inet.setopts(sock, [active: :once])

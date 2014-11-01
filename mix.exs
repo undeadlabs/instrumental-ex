@@ -16,6 +16,10 @@ defmodule Instrumental.Mixfile do
       applications: [
         :logger
       ],
+      registered: [
+        Instrumental.Supervisor,
+        Instrumental.Connection,
+      ],
       env: [
         host: "collector.instrumentalapp.com",
         port: 8000,
