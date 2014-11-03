@@ -45,7 +45,7 @@ defmodule Instrumental.Connection do
     :inet.setopts(sock, [active: :once])
     {:noreply, %{state | state: :connected}}
   end
-  def handle_info({:tcp, sock, data}, %{sock: sock} = state) do
+  def handle_info({:tcp, sock, _}, %{sock: sock} = state) do
     :inet.setopts(sock, [active: :once])
     {:noreply, state}
   end

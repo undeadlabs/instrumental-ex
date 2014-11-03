@@ -5,6 +5,7 @@ defmodule Instrumental.Protocol do
   @metric_match Regex.compile!("\s")
   @increment "increment"
   @gauge "gauge"
+  @gauge_absolute "gauge_absolute"
   @notice "notice"
 
   def authenticate do
@@ -20,6 +21,12 @@ defmodule Instrumental.Protocol do
   def format(:gauge, metric, value, time) do
     case metric_valid?(metric) do
       true  -> {:ok, build_command([@gauge, metric, value, time])}
+      false -> {:error, :invalid_metric}
+    end
+  end
+  def format(:gauge_absolute, metric, value, time) do
+    case metric_valid?(metric) do
+      true  -> {:ok, build_command([@gauge_absolute, metric, value, time])}
       false -> {:error, :invalid_metric}
     end
   end
