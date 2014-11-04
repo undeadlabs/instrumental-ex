@@ -4,6 +4,14 @@ defmodule Instrumental.Config do
     app
   end
 
+  def enabled? do
+    case token do
+      ""  -> false
+      nil -> false
+      _   -> true
+    end
+  end
+
   def host do
     Application.get_env(app, :host, "collector.instrumentalapp.com")
       |> String.to_char_list

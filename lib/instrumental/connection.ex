@@ -14,7 +14,11 @@ defmodule Instrumental.Connection do
   end
 
   def send_cmd(cmd) when is_binary(cmd) do
-    GenServer.cast(__MODULE__, {:send, cmd})
+    case Config.enabled? do
+      true ->
+        GenServer.cast(__MODULE__, {:send, cmd})
+      false -> :ok
+    end
   end
 
   #
@@ -22,8 +26,12 @@ defmodule Instrumental.Connection do
   #
 
   def init([]) do
-    {:ok, sock} = :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
-    {:ok, %{sock: sock, state: nil}, 0}
+    if Config.enabled? do
+      {:ok, sock} = :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
+      {:ok, %{sock: sock, state: nil}, 0}
+    else
+      :ignore
+    end
   end
 
   def handle_cast({:send, cmd}, %{sock: sock, state: :connected} = state) do
