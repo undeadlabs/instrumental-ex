@@ -22,7 +22,8 @@ defmodule Instrumental.Connection do
   #
 
   def init([]) do
-    {:ok, %{sock: nil, state: nil}, 0}
+    {:ok, sock} = :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
+    {:ok, %{sock: sock, state: nil}, 0}
   end
 
   def handle_cast({:send, cmd}, %{sock: sock, state: :connected} = state) do
@@ -41,7 +42,6 @@ defmodule Instrumental.Connection do
     end
   end
   def handle_info({:tcp, sock, @ok}, %{sock: sock, state: :auth} = state) do
-    Logger.debug "Instrumental connected"
     :inet.setopts(sock, [active: :once])
     {:noreply, %{state | state: :connected}}
   end
@@ -55,8 +55,7 @@ defmodule Instrumental.Connection do
     {:noreply, %{state | sock: nil, state: nil}, @connect_retry}
   end
 
-  def handle_info(:timeout, %{state: nil} = state) do
-    {:ok, sock} = :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
+  def handle_info(:timeout, %{sock: sock, state: nil} = state) do
     case :gen_tcp.send(sock, Protocol.hello) do
       :ok ->
         :inet.setopts(sock, [active: :once])
@@ -66,7 +65,6 @@ defmodule Instrumental.Connection do
     end
   end
   def handle_info(:timeout, %{sock: sock, state: :auth} = state) do
-    Logger.debug "Instrumental retrying authentication"
     case :gen_tcp.send(sock, Protocol.authenticate) do
       :ok ->
         :inet.setopts(sock, [active: :once])
