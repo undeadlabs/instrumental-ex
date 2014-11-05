@@ -1,3 +1,9 @@
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Undead Labs, LLC
+#
+
 defmodule Instrumental.Config do
   def app do
     {:ok, app} = :application.get_application(__MODULE__)

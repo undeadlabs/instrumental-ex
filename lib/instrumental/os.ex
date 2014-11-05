@@ -1,3 +1,9 @@
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Undead Labs, LLC
+#
+
 defmodule Instrumental.OS do
   def hostname do
     {:ok, name} = :inet.gethostname
