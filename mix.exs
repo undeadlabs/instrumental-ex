@@ -7,6 +7,8 @@ defmodule Instrumental.Mixfile do
       version: "0.0.1",
       elixir: "~> 1.0",
       deps: deps,
+      package: package,
+      description: description,
     ]
   end
 
@@ -30,5 +32,17 @@ defmodule Instrumental.Mixfile do
 
   defp deps do
     []
+  end
+
+  defp description do
+    """
+    An Elixir client for [Instrumental](http://instrumentalapp.com)
+    """
+  end
+
+  defp package do
+    %{licenses: ["MIT"],
+      contributors: ["Jamie Winsor"],
+      links: %{"Github" => "https://github.com/undeadlabs/instrumental-ex"}}
   end
 end
