@@ -36,7 +36,7 @@ defmodule Instrumental.Mixfile do
 
   defp description do
     """
-    An Elixir client for [Instrumental](http://instrumentalapp.com)
+    An Elixir client for Instrumental (http://instrumentalapp.com).
     """
   end
 
