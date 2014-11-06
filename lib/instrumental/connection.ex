@@ -19,6 +19,7 @@ defmodule Instrumental.Connection do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
+  @spec send_cmd(binary) :: :ok
   def send_cmd(cmd) when is_binary(cmd) do
     case Config.enabled? do
       true ->
