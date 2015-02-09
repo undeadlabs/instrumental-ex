@@ -5,6 +5,17 @@
 #
 
 defmodule Instrumental.Connection do
+  defmodule State do
+    defstruct sock: nil, state: nil
+
+    @type t :: %{
+      sock: pid,
+      state: connection_state
+    }
+
+    @type connection_state :: :hello | :connected | :auth
+  end
+
   alias Instrumental.Protocol
   alias Instrumental.Config
 
@@ -34,8 +45,7 @@ defmodule Instrumental.Connection do
 
   def init([]) do
     if Config.enabled? do
-      {:ok, sock} = :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
-      {:ok, %{sock: sock, state: nil}, 0}
+      {:ok, %State{}, 0}
     else
       :ignore
     end
@@ -70,6 +80,16 @@ defmodule Instrumental.Connection do
     {:noreply, %{state | sock: nil, state: nil}, @connect_retry}
   end
 
+  def handle_info(:timeout, %{sock: nil}) do
+    Logger.debug "Connecting to instrumental"
+    case connect() do
+      {:ok, sock} ->
+        Logger.debug "Instrumental connected"
+        {:noreply, %State{sock: sock}, 0}
+      _error ->
+        {:noreply, %State{}, @connect_retry}
+    end
+  end
   def handle_info(:timeout, %{sock: sock, state: nil} = state) do
     case :gen_tcp.send(sock, Protocol.hello) do
       :ok ->
@@ -93,5 +113,13 @@ defmodule Instrumental.Connection do
   def terminate(_, %{sock: sock}) do
     :gen_tcp.close(sock)
     :ok
+  end
+
+  #
+  # Private
+  #
+
+  defp connect do
+    :gen_tcp.connect(Config.host, Config.port, [mode: :binary, packet: 0, active: false, keepalive: true])
   end
 end
