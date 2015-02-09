@@ -4,7 +4,7 @@ defmodule Instrumental.Mixfile do
   def project do
     [
       app: :instrumental,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.0",
       deps: deps,
       package: package,
