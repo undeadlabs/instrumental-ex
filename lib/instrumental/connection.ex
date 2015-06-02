@@ -63,6 +63,7 @@ defmodule Instrumental.Connection do
         :inet.setopts(sock, [active: :once])
         {:noreply, %{state | state: :auth}}
       {:error, _} ->
+        Logger.error "Instrumental authentication failure"
         {:noreply, %{state | state: :auth}, @auth_retry}
     end
   end
@@ -76,17 +77,18 @@ defmodule Instrumental.Connection do
   end
 
   def handle_info({:tcp_closed, sock}, %{sock: sock} = state) do
-    Logger.debug "Instrumental disconnected"
+    Logger.warn "Instrumental disconnected"
     {:noreply, %{state | sock: nil, state: nil}, @connect_retry}
   end
 
   def handle_info(:timeout, %{sock: nil}) do
-    Logger.debug "Connecting to instrumental"
+    Logger.info "Connecting to instrumental"
     case connect() do
       {:ok, sock} ->
-        Logger.debug "Instrumental connected"
+        Logger.info "Instrumental connected"
         {:noreply, %State{sock: sock}, 0}
       _error ->
+        Logger.error "Failed to connect to instrumental"
         {:noreply, %State{}, @connect_retry}
     end
   end
@@ -96,6 +98,7 @@ defmodule Instrumental.Connection do
         :inet.setopts(sock, [active: :once])
         {:noreply, %{state | sock: sock, state: :hello}}
       {:error, _} ->
+        Logger.error "Failed to send hello to instrumental"
         {:noreply, state, @auth_retry}
     end
   end
@@ -105,6 +108,7 @@ defmodule Instrumental.Connection do
         :inet.setopts(sock, [active: :once])
         {:noreply, %{state | auth: true}}
       {:error, _} ->
+        Logger.error "Failed to authenticate with instrumental"
         {:noreply, state, @auth_retry}
     end
   end
