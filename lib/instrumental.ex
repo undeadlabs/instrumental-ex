@@ -49,15 +49,13 @@ defmodule Instrumental do
 
   def time(metric, multiplier \\ 1, timeout \\ :infinity, fun) when is_binary(metric) and is_function(fun) do
     start  = Time.unix_monotonic
-    result = nil
     try do
-      task     = Task.async fn -> fun.() end
-      result   = Task.await(task, timeout)
+      task = Task.async fn -> fun.() end
+      Task.await(task, timeout)
     after
       duration = Time.unix_monotonic - start
       gauge(metric, (duration * multiplier), start)
     end
-    result
   end
 
   def version do
