@@ -10,7 +10,7 @@ defmodule Instrumental.Time do
   """
   @spec unix_monotonic :: integer
   def unix_monotonic do
-    {mega, sec, _} = :erlang.now
+    {mega, sec, _} = :os.timestamp
     mega * 1_000_000 + sec
   end
 end
